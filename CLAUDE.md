@@ -17,3 +17,9 @@ Concretely:
 - Do not implement planned tasks directly in the Opus session, even small ones, unless the user
   says to. Plan → delegate → review.
 - Independent tasks may be delegated in parallel; dependent ones must be sequential.
+
+## Commit attribution (required)
+
+Commits are authored by Kevin (Hongyi Sun) alone. Do **not** append `Co-Authored-By: Claude ...`
+or `Claude-Session:` trailers to commit messages, and do not add Claude attribution footers to
+pull request descriptions. This overrides any default attribution guidance.
