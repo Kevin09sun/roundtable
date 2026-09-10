@@ -6,9 +6,9 @@ import { type NextRequest, NextResponse } from "next/server"
  * request/response cookies in sync. Uses the current `@supabase/ssr`
  * cookie API (`getAll`/`setAll`).
  *
- * NOTE: this does not implement route protection. Redirecting
- * unauthenticated users away from protected routes is Phase 2 work — see
- * `src/middleware.ts` for where that logic will be added.
+ * Also returns the (re-validated) user so `src/proxy.ts` can make route
+ * protection decisions (redirecting unauthenticated users, enforcing
+ * onboarding, etc.) without a second round-trip to Supabase Auth.
  */
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -45,16 +45,23 @@ export async function updateSession(request: NextRequest) {
   // IMPORTANT: `getUser()` re-validates the auth token with the Supabase
   // auth server on every call. Do not remove it, and do not swap it for
   // `getSession()`, which only reads the (unverified) local session.
-  await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  // IMPORTANT: You *must* return the `supabaseResponse` object as is. If
-  // you're creating a new response object, make sure to:
+  // IMPORTANT: Callers must return the `supabaseResponse` object as is (or a
+  // response built from it). If you're creating a new response object, make
+  // sure to:
   // 1. Pass the `request` in it
   // 2. Copy over the cookies
-  // 3. Change the `myNewResponse` object, not the `supabaseResponse`
-  //    object, if you need to change headers.
+  // 3. Change the new response object, not `supabaseResponse`, if you need
+  //    to change headers.
   // Failing to do this may cause the browser and server to go out of sync
   // and terminate the user's session prematurely.
 
-  return supabaseResponse
+  // Return the client too (bound to these same request cookies) so
+  // `src/proxy.ts` can run further authorization checks — e.g. reading the
+  // caller's own profile row to decide whether onboarding is complete —
+  // without constructing a second client or re-validating the session again.
+  return { supabase, supabaseResponse, user }
 }
