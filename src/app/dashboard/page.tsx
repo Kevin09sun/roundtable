@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
@@ -12,9 +13,9 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-// Placeholder dashboard for Phase 2 — just proves the signed-in user can
-// reach a protected page and see their own profile. Real content
-// (subjects, tutee requests, pairings, session logging) is Phase 4/5.
+// Placeholder dashboard — proves the signed-in user can reach a protected
+// page and see their own profile, and links out to the Phase 3 intake
+// pages. Pairings and session logging are Phase 4/5.
 export default async function DashboardPage() {
   const supabase = await createClient()
   const {
@@ -44,10 +45,28 @@ export default async function DashboardPage() {
               {profile?.is_admin ? "Admin" : "Member"}
             </Badge>
           </div>
-          <p className="text-muted-foreground text-sm">
-            This is a placeholder dashboard. Subjects, tutee requests,
-            pairings, and session logging land in later phases.
-          </p>
+          <nav className="flex flex-col gap-2 text-sm">
+            <Link
+              href="/tutor"
+              className="text-primary underline-offset-4 hover:underline"
+            >
+              Offer to tutor
+            </Link>
+            <Link
+              href="/request-help"
+              className="text-primary underline-offset-4 hover:underline"
+            >
+              Request a tutor
+            </Link>
+            {profile?.is_admin && (
+              <Link
+                href="/admin/subjects"
+                className="text-primary underline-offset-4 hover:underline"
+              >
+                Manage subjects (admin)
+              </Link>
+            )}
+          </nav>
           <form action={signOut}>
             <Button type="submit" variant="outline" className="w-full">
               Sign out
