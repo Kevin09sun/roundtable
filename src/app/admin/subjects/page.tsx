@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
@@ -32,7 +33,24 @@ export default async function AdminSubjectsPage() {
 
   return (
     <div className="flex flex-1 justify-center px-6 py-12">
-      <div className="w-full max-w-2xl">
+      <div className="flex w-full max-w-2xl flex-col gap-6">
+        <nav className="flex gap-4 text-sm">
+          <Link
+            href="/admin/requests"
+            className="text-muted-foreground underline-offset-4 hover:underline"
+          >
+            Requests
+          </Link>
+          <Link
+            href="/admin/pairings"
+            className="text-muted-foreground underline-offset-4 hover:underline"
+          >
+            Pairings
+          </Link>
+          <Link href="/admin/subjects" className="font-medium underline-offset-4 hover:underline">
+            Subjects
+          </Link>
+        </nav>
         <AdminSubjectsTable subjects={subjects ?? []} />
       </div>
     </div>

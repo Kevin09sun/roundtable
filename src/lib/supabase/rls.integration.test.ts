@@ -42,6 +42,23 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest"
  *
  * Needs network access to the real project, so this lives in its own file
  * rather than alongside the unit tests in src/lib/utils.test.ts.
+ *
+ * This file and src/lib/supabase/pairings-rls.integration.test.ts sign in
+ * as the SAME three fixture accounts and share one live Supabase project,
+ * so a write in one is visible to a read in the other in real time.
+ * pairings-rls.integration.test.ts creates real, active pairings between
+ * userA and userB and only deletes them in its own afterAll -- and because
+ * profiles_select was widened to let paired users read each other
+ * (20260910130000_allow_paired_profile_read.sql), that used to be able to
+ * make "does NOT let a user read another user's profile row" below
+ * legitimately fail if the two files happened to run at the same time.
+ * That's why vitest.config.ts sets `fileParallelism: false`: these
+ * integration suites never run concurrently with each other, so this
+ * specific collision cannot happen. The precondition check that test does
+ * (see findNonEndedPairingBetween below) stays regardless -- it's what
+ * catches genuinely dirty fixture state (e.g. a leftover manual-walkthrough
+ * pairing, see the Phase 4 review report) with a clear diagnostic instead
+ * of a confusing assertion diff.
  */
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -125,6 +142,12 @@ async function signIn(
   let userA: { id: string }
   let userB: { id: string }
 
+  // Created by the "paired profile read" positive test below, cleaned up
+  // in afterAll (FK-safe order: pairings, then tutor_subjects, then
+  // subjects) -- same pattern as pairings-rls.integration.test.ts.
+  let pairedTestSubjectId: string | null = null
+  let pairedTestPairingId: string | null = null
+
   beforeAll(async () => {
     ;[userA, userB] = await Promise.all([
       signIn(clientA, FIXTURES.userA),
@@ -134,12 +157,43 @@ async function signIn(
   })
 
   afterAll(async () => {
+    if (pairedTestPairingId) {
+      await clientAdmin.from("pairings").delete().eq("id", pairedTestPairingId)
+    }
+    if (pairedTestSubjectId) {
+      await clientAdmin.from("tutor_subjects").delete().eq("subject_id", pairedTestSubjectId)
+      await clientAdmin.from("subjects").delete().eq("id", pairedTestSubjectId)
+    }
+
     await Promise.all([
       clientA.auth.signOut(),
       clientB.auth.signOut(),
       clientAdmin.auth.signOut(),
     ])
   })
+
+  /**
+   * Whether userA and userB are currently joined by any NON-ENDED pairing
+   * (either direction) -- queried via the admin client so it isn't itself
+   * subject to the profiles/pairings RLS this suite is testing. Used to
+   * guarantee the precondition of "does NOT let a user read another user's
+   * profile row" below rather than assume it: see that test for why a
+   * non-ended pairing between A and B changes the expected answer.
+   */
+  async function findNonEndedPairingBetween(a: string, b: string) {
+    const { data, error } = await clientAdmin
+      .from("pairings")
+      .select("id, tutor_id, tutee_id, status")
+      .or(`and(tutor_id.eq.${a},tutee_id.eq.${b}),and(tutor_id.eq.${b},tutee_id.eq.${a})`)
+      .neq("status", "ended")
+
+    if (error) {
+      throw new Error(
+        `Failed to check for a leftover pairing between userA/userB: ${error.message}`
+      )
+    }
+    return data ?? []
+  }
 
   it("lets a user read their own profile row", async () => {
     const { data, error } = await clientA
@@ -173,6 +227,34 @@ async function signIn(
   })
 
   it("does NOT let a user read another user's profile row", async () => {
+    // PRECONDITION, not an assumption: profiles_select was widened by
+    // supabase/migrations/20260910130000_allow_paired_profile_read.sql so a
+    // user CAN read the profile of anyone they currently have a non-ended
+    // pairing with. "A cannot read B" is therefore only true while A and B
+    // are UNPAIRED — see the positive companion test below for the paired
+    // case, which is deliberately a separate test rather than a branch
+    // here.
+    //
+    // Confirm that precondition via the admin client instead of assuming
+    // it, so a leftover pairing between the fixture users -- e.g. from a
+    // manual browser walkthrough that didn't clean up after itself, see
+    // the Phase 4 review report -- fails loudly here with a clear
+    // diagnosis instead of a confusing array-length assertion diff.
+    // (pairings-rls.integration.test.ts also creates transient A/B
+    // pairings, but vitest.config.ts's `fileParallelism: false` means it
+    // never runs at the same time as this file, so it cannot be the cause
+    // of a failure here.)
+    const dirty = await findNonEndedPairingBetween(userA.id, userB.id)
+    if (dirty.length > 0) {
+      throw new Error(
+        `userA and userB have ${dirty.length} non-ended pairing(s) ` +
+          `(${dirty.map((p) => `${p.id}: ${p.status}`).join(", ")}) — this test's denial only ` +
+          "holds while they are unpaired. Clean up the leftover pairing(s) above (or their " +
+          "originating subject/tutor_subjects/tutee_requests rows, if this is fallout from a " +
+          "manual walkthrough) before re-running."
+      )
+    }
+
     const { data, error } = await clientA.from("profiles").select("id").eq("id", userB.id)
 
     // RLS filters the row out of the result set rather than raising a
@@ -180,6 +262,55 @@ async function signIn(
     // not just the absence of an error.
     expect(error).toBeNull()
     expect(data).toEqual([])
+  })
+
+  it("lets a user read a paired counterpart's profile row while active, and no longer once the pairing has ended", async () => {
+    // Positive companion to "does NOT let a user read another user's
+    // profile row" above: proves the widened branch of profiles_select
+    // (20260910130000_allow_paired_profile_read.sql) actually works, and
+    // that it is scoped to NON-ENDED pairings specifically — once the
+    // pairing ends, the counterpart goes back to being unreadable, same as
+    // any other stranger. Nothing currently tested that boundary.
+    const { data: subject, error: subjectError } = await clientAdmin
+      .from("subjects")
+      .insert({ name: `__rt_test_paired_profile_read_${Date.now()}_${Math.random()}__` })
+      .select("id")
+      .single()
+    expect(subjectError).toBeNull()
+    pairedTestSubjectId = subject!.id
+
+    const { error: offerError } = await clientAdmin
+      .from("tutor_subjects")
+      .insert({ tutor_id: userA.id, subject_id: subject!.id, max_tutees: 5 })
+    expect(offerError).toBeNull()
+
+    const { data: pairing, error: pairingError } = await clientAdmin
+      .from("pairings")
+      .insert({ tutor_id: userA.id, tutee_id: userB.id, subject_id: subject!.id })
+      .select("id")
+      .single()
+    expect(pairingError).toBeNull()
+    pairedTestPairingId = pairing!.id
+
+    const { data: whileActive, error: activeError } = await clientA
+      .from("profiles")
+      .select("id")
+      .eq("id", userB.id)
+    expect(activeError).toBeNull()
+    expect(whileActive).toHaveLength(1)
+
+    const { error: endError } = await clientAdmin
+      .from("pairings")
+      .update({ status: "ended", ended_at: new Date().toISOString() })
+      .eq("id", pairing!.id)
+    expect(endError).toBeNull()
+
+    const { data: afterEnd, error: afterEndError } = await clientA
+      .from("profiles")
+      .select("id")
+      .eq("id", userB.id)
+    expect(afterEndError).toBeNull()
+    expect(afterEnd).toEqual([])
   })
 
   it("does NOT let a user update another user's profile row", async () => {

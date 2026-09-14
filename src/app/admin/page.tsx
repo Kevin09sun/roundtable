@@ -2,10 +2,10 @@ import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
 
-// /admin has no content of its own yet -- just an admin-gated landing spot
-// that forwards to the one admin feature this phase ships. Re-checks admin
-// status itself rather than relying on the proxy alone (see the comment on
-// /admin/subjects for why).
+// /admin has no content of its own -- just an admin-gated landing spot that
+// forwards to the requests queue, the day-to-day admin task (Phase 4).
+// Re-checks admin status itself rather than relying on the proxy alone (see
+// the comment on /admin/subjects for why).
 export default async function AdminIndexPage() {
   const supabase = await createClient()
   const {
@@ -21,5 +21,5 @@ export default async function AdminIndexPage() {
     redirect("/dashboard")
   }
 
-  redirect("/admin/subjects")
+  redirect("/admin/requests")
 }
