@@ -4,9 +4,12 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest"
 /**
  * Integration tests that exercise Row Level Security AND the triggers
  * touched by Phase 5 -- `sessions` (see
- * supabase/migrations/20260912090000_create_sessions_schema.sql) and the
+ * supabase/migrations/20260912090000_create_sessions_schema.sql), the
  * participant meeting_time edit + capacity-check fix on `pairings` (see
- * supabase/migrations/20260912093000_allow_participant_meeting_time_edit.sql)
+ * supabase/migrations/20260912093000_allow_participant_meeting_time_edit.sql),
+ * and sessions_update's explicit participation requirement on the resulting
+ * row (see
+ * supabase/migrations/20260914100000_require_participation_on_sessions_update.sql)
  * -- against the REAL hosted Supabase project (not a mock).
  *
  * Same fixture pattern as pairings-rls.integration.test.ts (see that file's
@@ -251,6 +254,71 @@ function tomorrowIsoDate() {
 
     expect(error).not.toBeNull()
     expect(data).toBeNull()
+  })
+
+  it("does NOT let a non-admin re-point pairing_id to a pairing they don't participate in, but they CAN still edit minutes/notes on their own session; an admin CAN re-point any session", async () => {
+    const subjectId = await createSubject("update_repoint")
+    await offerSubject(userA.id, subjectId, 5)
+    await offerSubject(admin.id, subjectId, 5)
+    // userA participates in `pairingId` but not in `otherPairingId`.
+    const pairingId = await createPairing(userA.id, userB.id, subjectId)
+    const otherPairingId = await createPairing(admin.id, userB.id, subjectId)
+
+    const { data: session, error: insertError } = await clientA
+      .from("sessions")
+      .insert({
+        pairing_id: pairingId,
+        occurred_on: todayIsoDate(),
+        minutes: 30,
+        status: "completed",
+        logged_by: userA.id,
+      })
+      .select("id")
+      .single()
+    expect(insertError).toBeNull()
+
+    // Re-pointing to a pairing userA doesn't participate in passes USING
+    // (logged_by is still userA's own id going in) but fails WITH CHECK on
+    // the resulting row -- Postgres raises 42501 for a WITH CHECK failure
+    // (unlike USING filtering a row out, which is silent), so this is a
+    // real error, not a silent no-op.
+    const { data: repointData, error: repointError } = await clientA
+      .from("sessions")
+      .update({ pairing_id: otherPairingId })
+      .eq("id", session!.id)
+      .select("id")
+    expect(repointError).not.toBeNull()
+    expect(repointData).toBeNull()
+
+    // Not just "it errored" -- the STORED pairing_id must be unchanged.
+    const { data: afterRepoint } = await clientAdmin
+      .from("sessions")
+      .select("pairing_id")
+      .eq("id", session!.id)
+      .single()
+    expect(afterRepoint?.pairing_id).toBe(pairingId)
+
+    // Control: the same user, on the same session, can still edit ordinary
+    // columns (minutes/notes) that don't touch which pairing it belongs to.
+    const { data: edited, error: editError } = await clientA
+      .from("sessions")
+      .update({ minutes: 45, notes: "updated by participant" })
+      .eq("id", session!.id)
+      .select("minutes, notes")
+      .single()
+    expect(editError).toBeNull()
+    expect(edited).toMatchObject({ minutes: 45, notes: "updated by participant" })
+
+    // An admin CAN still re-point any session's pairing_id, including to a
+    // pairing the original logger doesn't participate in.
+    const { data: adminRepoint, error: adminRepointError } = await clientAdmin
+      .from("sessions")
+      .update({ pairing_id: otherPairingId })
+      .eq("id", session!.id)
+      .select("pairing_id")
+      .single()
+    expect(adminRepointError).toBeNull()
+    expect(adminRepoint?.pairing_id).toBe(otherPairingId)
   })
 
   it("does NOT let a participant DELETE a session; an admin can", async () => {

@@ -39,12 +39,24 @@ export async function renameSubject(input: RenameSubjectInput): Promise<ActionRe
   }
 
   const supabase = await createClient()
-  const { error } = await supabase
+  // Under RLS, an UPDATE the caller isn't allowed to perform is not an
+  // error -- it matches zero rows and PostgREST reports that as success
+  // with an empty result. `.select("id")` and checking the returned rows
+  // is what turns "nothing happened" back into a real failure, instead of
+  // silently reporting success for a denied write or a stale id (same
+  // pattern as linkRequestToProfile / endPairing in
+  // src/lib/actions/pairing.ts).
+  const { data, error } = await supabase
     .from("subjects")
     .update({ name: parsed.data.name })
     .eq("id", parsed.data.id)
+    .select("id")
+
   if (error) {
     return { error: error.message }
+  }
+  if (!data || data.length === 0) {
+    return { error: "Subject not found, or you do not have permission to rename it." }
   }
   return { success: true }
 }
@@ -56,12 +68,18 @@ export async function setSubjectActive(input: SetSubjectActiveInput): Promise<Ac
   }
 
   const supabase = await createClient()
-  const { error } = await supabase
+  // Same reasoning as renameSubject above.
+  const { data, error } = await supabase
     .from("subjects")
     .update({ is_active: parsed.data.isActive })
     .eq("id", parsed.data.id)
+    .select("id")
+
   if (error) {
     return { error: error.message }
+  }
+  if (!data || data.length === 0) {
+    return { error: "Subject not found, or you do not have permission to update it." }
   }
   return { success: true }
 }

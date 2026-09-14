@@ -18,7 +18,8 @@ export default defineConfig({
     environment: "node",
     env: envLocal ?? {},
     // The RLS integration suites (src/lib/supabase/*.integration.test.ts,
-    // src/lib/actions/pairing.integration.test.ts) are not isolated from
+    // src/lib/actions/pairing.integration.test.ts,
+    // src/lib/actions/subjects.integration.test.ts) are not isolated from
     // each other the way unit tests are: they all share ONE resource, the
     // real hosted Supabase project, and sign in as the same three
     // pre-seeded fixture accounts to do it. Vitest's default file
