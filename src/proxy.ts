@@ -10,6 +10,7 @@ const PROTECTED_PREFIXES = [
   "/admin",
   "/tutor",
   "/request-help",
+  "/pairings",
 ]
 
 // Prefixes that additionally require is_admin. This is the FIRST of two
