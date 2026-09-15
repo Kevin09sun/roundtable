@@ -50,6 +50,18 @@ export default async function AdminSubjectsPage() {
           <Link href="/admin/subjects" className="font-medium underline-offset-4 hover:underline">
             Subjects
           </Link>
+          <Link
+            href="/admin/issues"
+            className="text-muted-foreground underline-offset-4 hover:underline"
+          >
+            Issues
+          </Link>
+          <Link
+            href="/admin/reports"
+            className="text-muted-foreground underline-offset-4 hover:underline"
+          >
+            Reports
+          </Link>
         </nav>
         <AdminSubjectsTable subjects={subjects ?? []} />
       </div>

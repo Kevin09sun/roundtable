@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server"
 import { LogSessionForm } from "@/components/log-session-form"
 import { MeetingTimeEditor } from "@/components/meeting-time-editor"
 import { SessionHistory, type SessionRow } from "@/components/session-history"
+import { ReportIssueForm } from "@/components/report-issue-form"
+import { IssueHistory, type IssueRow } from "@/components/issue-history"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -31,12 +33,12 @@ type RawPairing = {
 }
 
 // Full detail for one pairing: session history, inline meeting-time edit,
-// and a pointer to a club VP for anything this app deliberately does not
-// automate (ending a pairing for cause, reporting a problem) -- that's
-// Phase 6's issues queue, not built here. pairings_select (participant or
-// admin) is the real security boundary; the explicit redirect below when
-// no row comes back is what stops a participant from opening a pairing
-// they are not part of from ever rendering anything, RLS-denied or not.
+// and the report-a-problem form (Phase 6) for anything this app
+// deliberately does not automate (ending a pairing for cause, working out
+// a scheduling conflict). pairings_select (participant or admin) is the
+// real security boundary; the explicit redirect below when no row comes
+// back is what stops a participant from opening a pairing they are not
+// part of from ever rendering anything, RLS-denied or not.
 export default async function PairingDetailPage({
   params,
 }: {
@@ -83,6 +85,19 @@ export default async function PairingDetailPage({
   const completedMinutes = sessions
     .filter((s) => s.status === "completed")
     .reduce((sum, s) => sum + s.minutes, 0)
+
+  // issues_select (raised_by = auth.uid() OR is_admin(), see
+  // supabase/migrations/20260914110000_create_issues_schema.sql)
+  // deliberately does NOT include "either participant" -- a non-admin
+  // caller here only ever gets back issues they themselves raised, never
+  // the other participant's. That's the point: this section shows "your
+  // reported issues", not "issues on this pairing".
+  const { data: issuesData } = await supabase
+    .from("issues")
+    .select("id, category, description, status, resolution, created_at")
+    .eq("pairing_id", id)
+    .order("created_at", { ascending: false })
+  const issues = (issuesData ?? []) as IssueRow[]
 
   const isParticipant = user.id === pairing.tutor?.id || user.id === pairing.tutee?.id
   const canEditMeetingTime = isParticipant && pairing.status !== "ended"
@@ -151,12 +166,22 @@ export default async function PairingDetailPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Need help with this pairing?</CardTitle>
+            <CardTitle>Report a problem</CardTitle>
             <CardDescription>
-              This app doesn&apos;t handle problems or ending a pairing for cause on its
-              own -- talk to a club VP directly and they&apos;ll take it from there.
+              Scheduling conflict, a no-show, a mismatch, or anything else -- file it here
+              and an admin will follow up. This app still doesn&apos;t end a pairing for
+              cause on its own; an admin does that once they&apos;ve looked into it.
             </CardDescription>
           </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            {isParticipant && <ReportIssueForm pairingId={pairing.id} />}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium">
+                {isParticipant ? "Your reported issues" : "Reported issues"}
+              </span>
+              <IssueHistory issues={issues} />
+            </div>
+          </CardContent>
         </Card>
       </div>
     </div>

@@ -156,6 +156,18 @@ export default async function AdminRequestsPage() {
           >
             Subjects
           </Link>
+          <Link
+            href="/admin/issues"
+            className="text-muted-foreground underline-offset-4 hover:underline"
+          >
+            Issues
+          </Link>
+          <Link
+            href="/admin/reports"
+            className="text-muted-foreground underline-offset-4 hover:underline"
+          >
+            Reports
+          </Link>
         </nav>
         <AdminRequestsQueue requests={requests} />
       </div>

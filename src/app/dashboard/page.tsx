@@ -136,6 +136,18 @@ export default async function DashboardPage() {
                   >
                     Manage subjects (admin)
                   </Link>
+                  <Link
+                    href="/admin/issues"
+                    className="text-primary underline-offset-4 hover:underline"
+                  >
+                    Issue queue (admin)
+                  </Link>
+                  <Link
+                    href="/admin/reports"
+                    className="text-primary underline-offset-4 hover:underline"
+                  >
+                    Reports (admin)
+                  </Link>
                 </>
               )}
             </nav>
