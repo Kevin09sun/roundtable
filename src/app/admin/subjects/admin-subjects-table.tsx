@@ -38,6 +38,14 @@ export function AdminSubjectsTable({ subjects }: { subjects: Subject[] }) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState("")
   const [pendingId, setPendingId] = useState<string | null>(null)
+  const [filterQuery, setFilterQuery] = useState("")
+
+  const trimmedFilter = filterQuery.trim().toLowerCase()
+  const filteredSubjects = trimmedFilter
+    ? subjects.filter((subject) =>
+        subject.name.toLowerCase().includes(trimmedFilter)
+      )
+    : subjects
 
   async function handleCreate() {
     setError(null)
@@ -115,73 +123,88 @@ export function AdminSubjectsTable({ subjects }: { subjects: Subject[] }) {
         {subjects.length === 0 ? (
           <p className="text-muted-foreground text-sm">No subjects yet.</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {subjects.map((subject) => (
-                <TableRow key={subject.id}>
-                  <TableCell>
-                    {editingId === subject.id ? (
-                      <Input
-                        value={editingName}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        autoFocus
-                      />
-                    ) : (
-                      subject.name
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={subject.is_active ? "success" : "muted"}>
-                      {subject.is_active ? "Active" : "Inactive"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-2">
-                      {editingId === subject.id ? (
-                        <>
-                          <Button size="sm" onClick={() => handleRename(subject.id)}>
-                            Save
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setEditingId(null)}
-                          >
-                            Cancel
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => startEdit(subject)}
-                          >
-                            Rename
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={pendingId === subject.id}
-                            onClick={() => handleToggleActive(subject)}
-                          >
-                            {subject.is_active ? "Deactivate" : "Activate"}
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
+          <>
+            <Input
+              placeholder="Filter subjects..."
+              value={filterQuery}
+              onChange={(e) => setFilterQuery(e.target.value)}
+            />
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredSubjects.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center text-muted-foreground">
+                      No courses match
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredSubjects.map((subject) => (
+                    <TableRow key={subject.id}>
+                      <TableCell>
+                        {editingId === subject.id ? (
+                          <Input
+                            value={editingName}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            autoFocus
+                          />
+                        ) : (
+                          subject.name
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={subject.is_active ? "success" : "muted"}>
+                          {subject.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-end gap-2">
+                          {editingId === subject.id ? (
+                            <>
+                              <Button size="sm" onClick={() => handleRename(subject.id)}>
+                                Save
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setEditingId(null)}
+                              >
+                                Cancel
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => startEdit(subject)}
+                              >
+                                Rename
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={pendingId === subject.id}
+                                onClick={() => handleToggleActive(subject)}
+                              >
+                                {subject.is_active ? "Deactivate" : "Activate"}
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </>
         )}
       </CardContent>
     </Card>

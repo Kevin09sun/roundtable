@@ -25,13 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { SubjectCombobox } from "@/components/subject-combobox"
 
 type Props = {
   subjects: ActiveSubject[]
@@ -134,18 +128,12 @@ export function ReferForm({ subjects }: Props) {
                 <FormItem>
                   <FormLabel>Subject</FormLabel>
                   <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a subject" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {subjects.map((subject) => (
-                          <SelectItem key={subject.id} value={subject.id}>
-                            {subject.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <SubjectCombobox
+                      subjects={subjects}
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Select a subject"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useFieldArray, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -36,6 +37,12 @@ export function TutorForm({ subjects, offerings }: Props) {
   const router = useRouter()
   const offeringBySubject = new Map(offerings.map((o) => [o.subject_id, o]))
 
+  // Local UI state only -- never part of the zod schema or submitted
+  // payload. Filtering happens at render time (see the null-return inside
+  // fields.map below), never by touching `fields`/`entries` themselves.
+  const [subjectQuery, setSubjectQuery] = useState("")
+  const trimmedQuery = subjectQuery.trim().toLowerCase()
+
   const form = useForm<TutorSubjectsInput>({
     resolver: zodResolver(tutorSubjectsFormSchema),
     defaultValues: {
@@ -57,6 +64,16 @@ export function TutorForm({ subjects, offerings }: Props) {
   // can't safely memoize, and calling it per-field inside the render loop
   // below would rerun that unmemoizable subscription once per field.
   const watchedEntries = useWatch({ control: form.control, name: "entries" })
+
+  const selectedCount = watchedEntries.filter((entry) => entry?.offering).length
+  const isMatch = (name: string) =>
+    trimmedQuery === "" || name.toLowerCase().includes(trimmedQuery)
+  // A row is visible if it matches the filter, OR it's checked -- a
+  // checked subject must never appear to vanish just because the filter
+  // no longer matches it.
+  const anyVisible = subjects.some(
+    (subject, index) => watchedEntries[index]?.offering || isMatch(subject.name)
+  )
 
   async function onSubmit(values: TutorSubjectsInput) {
     const result = await saveTutorSubjects(values)
@@ -93,9 +110,39 @@ export function TutorForm({ subjects, offerings }: Props) {
       </CardHeader>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <CardContent className="flex flex-col gap-6">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <Label htmlFor="subject-filter">Filter subjects</Label>
+              <span className="text-sm text-muted-foreground">
+                {selectedCount} selected
+              </span>
+            </div>
+            <Input
+              id="subject-filter"
+              type="text"
+              placeholder="Search courses..."
+              value={subjectQuery}
+              onChange={(e) => setSubjectQuery(e.target.value)}
+            />
+          </div>
+          {!anyVisible && (
+            <p className="text-muted-foreground text-sm">No courses match.</p>
+          )}
           {fields.map((_field, index) => {
             const subject = subjects[index]
             const offering = watchedEntries[index]?.offering
+
+            // Render-time filtering ONLY -- `fields`/`entries` is never
+            // filtered, sliced, or reordered. `fields.map` still walks
+            // every index so entries[index] stays aligned with
+            // subjects[index] (form.register(`entries.${index}...`)
+            // depends on that). A row that doesn't match the current
+            // filter, and isn't checked, simply renders nothing.
+            // Checked rows always render regardless of the filter, so a
+            // tutor never sees their selection appear to vanish.
+            if (!offering && !isMatch(subject.name)) {
+              return null
+            }
 
             // Keyed and id'd by subject.id, NOT react-hook-form's field.id:
             // field.id is a fresh random value on every render pass, so
