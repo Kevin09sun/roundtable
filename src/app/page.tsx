@@ -10,7 +10,7 @@ export default function Home() {
         aria-hidden="true"
       />
       <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-        Roundtable
+        Roundtable Peer Tutoring Program
       </h1>
       <p className="text-muted-foreground">
         Peer tutoring at Crescent School

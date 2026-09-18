@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Roundtable",
+  title: "Roundtable Peer Tutoring Program",
   description: "Peer tutoring at Crescent School",
 };
 

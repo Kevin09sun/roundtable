@@ -14,7 +14,8 @@ export function BrandMark() {
       className="mb-2 flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground"
     >
       <span className="inline-block size-2 rounded-full bg-gold-400" aria-hidden="true" />
-      Roundtable
+      <span className="sm:hidden">Roundtable</span>
+      <span className="hidden sm:inline">Roundtable Peer Tutoring Program</span>
     </Link>
   )
 }

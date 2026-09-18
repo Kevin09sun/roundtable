@@ -44,7 +44,8 @@ export function SiteHeader({
             className="inline-block size-2 rounded-full bg-gold-400"
             aria-hidden="true"
           />
-          Roundtable
+          <span className="sm:hidden">Roundtable</span>
+          <span className="hidden sm:inline">Roundtable Peer Tutoring Program</span>
         </Link>
 
         <nav className="flex flex-wrap items-center gap-1 text-sm">
