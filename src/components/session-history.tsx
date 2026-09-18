@@ -16,10 +16,10 @@ export type SessionRow = {
   notes: string | null
 }
 
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
-  completed: "default",
-  no_show: "secondary",
-  cancelled: "outline",
+const STATUS_VARIANT: Record<string, "success" | "destructive"> = {
+  completed: "success",
+  no_show: "destructive",
+  cancelled: "destructive",
 }
 
 /**
@@ -57,7 +57,7 @@ export function SessionHistory({
             <TableCell>{session.occurred_on}</TableCell>
             <TableCell>{session.minutes}</TableCell>
             <TableCell>
-              <Badge variant={STATUS_VARIANT[session.status] ?? "secondary"}>
+              <Badge variant={STATUS_VARIANT[session.status] ?? "muted"}>
                 {session.status.replace("_", " ")}
               </Badge>
             </TableCell>

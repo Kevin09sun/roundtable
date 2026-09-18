@@ -17,10 +17,14 @@ export type IssueRow = {
   created_at: string
 }
 
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
-  open: "outline",
+// open reads as "awaiting action" (pending/gold), in_progress as a neutral
+// working state (secondary), resolved as done (success/green) -- following
+// the same active/pending/ended semantic pattern used for pairing and
+// session statuses elsewhere in this app.
+const STATUS_VARIANT: Record<string, "pending" | "secondary" | "success"> = {
+  open: "pending",
   in_progress: "secondary",
-  resolved: "default",
+  resolved: "success",
 }
 
 /**
@@ -53,7 +57,7 @@ export function IssueHistory({ issues }: { issues: IssueRow[] }) {
               {issue.description}
             </TableCell>
             <TableCell>
-              <Badge variant={STATUS_VARIANT[issue.status] ?? "secondary"}>
+              <Badge variant={STATUS_VARIANT[issue.status] ?? "muted"}>
                 {issue.status.replace("_", " ")}
               </Badge>
             </TableCell>

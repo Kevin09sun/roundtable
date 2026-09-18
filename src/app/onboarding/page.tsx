@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
+import { BrandMark } from "@/components/brand-mark"
 import { OnboardingForm } from "./onboarding-form"
 
 export default async function OnboardingPage() {
@@ -20,7 +21,8 @@ export default async function OnboardingPage() {
     .maybeSingle()
 
   return (
-    <div className="flex flex-1 items-center justify-center px-6 py-12">
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-12">
+      <BrandMark />
       <OnboardingForm
         defaultFullName={profile?.full_name ?? ""}
         defaultGrade={profile?.grade ?? undefined}

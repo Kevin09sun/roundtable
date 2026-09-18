@@ -1,7 +1,9 @@
-import Link from "next/link"
 import { redirect } from "next/navigation"
+import { Download } from "lucide-react"
 
 import { createClient } from "@/lib/supabase/server"
+import { AdminNav } from "@/components/admin-nav"
+import { SiteHeader } from "@/components/site-header"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -82,78 +84,59 @@ export default async function AdminReportsPage() {
     .sort((a, b) => b.minutes - a.minutes)
 
   return (
-    <div className="flex flex-1 justify-center px-6 py-12">
-      <div className="flex w-full max-w-3xl flex-col gap-6">
-        <nav className="flex gap-4 text-sm">
-          <Link
-            href="/admin/requests"
-            className="text-muted-foreground underline-offset-4 hover:underline"
-          >
-            Requests
-          </Link>
-          <Link
-            href="/admin/pairings"
-            className="text-muted-foreground underline-offset-4 hover:underline"
-          >
-            Pairings
-          </Link>
-          <Link
-            href="/admin/subjects"
-            className="text-muted-foreground underline-offset-4 hover:underline"
-          >
-            Subjects
-          </Link>
-          <Link
-            href="/admin/issues"
-            className="text-muted-foreground underline-offset-4 hover:underline"
-          >
-            Issues
-          </Link>
-          <Link href="/admin/reports" className="font-medium underline-offset-4 hover:underline">
-            Reports
-          </Link>
-        </nav>
+    <div className="flex flex-1 flex-col">
+      <SiteHeader userLabel={user.email ?? ""} isAdmin />
+      <div className="flex flex-1 justify-center px-6 py-12">
+        <div className="flex w-full max-w-3xl flex-col gap-6">
+          <AdminNav active="/admin/reports" />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Volunteer hours</CardTitle>
-            <CardDescription>
-              Club-wide, per tutor -- sum of minutes on completed sessions.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <div className="flex gap-2">
-              <Button asChild size="sm" variant="outline">
-                <a href="/admin/reports/export/sessions">Export sessions CSV</a>
-              </Button>
-              <Button asChild size="sm" variant="outline">
-                <a href="/admin/reports/export/hours">Export hours CSV</a>
-              </Button>
-            </div>
-            {hoursRows.length === 0 ? (
-              <p className="text-muted-foreground text-sm">No completed sessions yet.</p>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tutor</TableHead>
-                    <TableHead>Minutes</TableHead>
-                    <TableHead>Hours</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {hoursRows.map((row) => (
-                    <TableRow key={row.tutorId}>
-                      <TableCell>{row.name}</TableCell>
-                      <TableCell>{row.minutes}</TableCell>
-                      <TableCell>{row.hours}</TableCell>
+          <Card>
+            <CardHeader>
+              <CardTitle>Volunteer hours</CardTitle>
+              <CardDescription>
+                Club-wide, per tutor -- sum of minutes on completed sessions.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <div className="flex flex-wrap gap-2">
+                <Button asChild size="sm" variant="outline">
+                  <a href="/admin/reports/export/sessions">
+                    <Download data-icon="inline-start" />
+                    Export sessions CSV
+                  </a>
+                </Button>
+                <Button asChild size="sm" variant="outline">
+                  <a href="/admin/reports/export/hours">
+                    <Download data-icon="inline-start" />
+                    Export hours CSV
+                  </a>
+                </Button>
+              </div>
+              {hoursRows.length === 0 ? (
+                <p className="text-muted-foreground text-sm">No completed sessions yet.</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Tutor</TableHead>
+                      <TableHead>Minutes</TableHead>
+                      <TableHead>Hours</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {hoursRows.map((row) => (
+                      <TableRow key={row.tutorId}>
+                        <TableCell>{row.name}</TableCell>
+                        <TableCell>{row.minutes}</TableCell>
+                        <TableCell className="font-medium">{row.hours}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

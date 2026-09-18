@@ -4,10 +4,47 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Crescent School brand palette, derived from the school's own brand colors:
+ *   green #006548 (primary), gold #ffcf4b (accent, used sparingly), navy
+ *   #052942 (headings/body text). The 50->950 green and gold scales below
+ *   are deterministic tints/shades of those two source hexes (blended
+ *   toward white for the lighter stops, toward black for the darker ones)
+ *   rather than hand-picked colors, so every shade traces back to the same
+ *   two brand values. Registered under @theme so Tailwind v4 generates
+ *   `bg-green-100`, `text-gold-700`, `text-navy`, etc. utilities from them.
+ */
+@theme {
+  --color-green-50: #f5f9f8;
+  --color-green-100: #e6f0ed;
+  --color-green-200: #c7ddd7;
+  --color-green-300: #9ec4b9;
+  --color-green-400: #6ba695;
+  --color-green-500: #33846d;
+  --color-green-600: #0d6d51;
+  --color-green-700: #006548;
+  --color-green-800: #00563d;
+  --color-green-900: #004531;
+  --color-green-950: #003324;
+
+  --color-gold-50: #fffdf6;
+  --color-gold-100: #fff9e9;
+  --color-gold-200: #fff3d2;
+  --color-gold-300: #ffe293;
+  --color-gold-400: #ffcf4b;
+  --color-gold-500: #d9b040;
+  --color-gold-600: #ad8d33;
+  --color-gold-700: #856c27;
+  --color-gold-800: #614f1d;
+  --color-gold-900: #423614;
+
+  --color-navy: #052942;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -49,72 +86,74 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  /* Page background is a hair off pure white (green-50) so cards -- pure
+     white -- read as distinct surfaces sitting on top of it. */
+  --background: var(--color-green-50);
+  --foreground: var(--color-navy);
+  --card: #ffffff;
+  --card-foreground: var(--color-navy);
+  --popover: #ffffff;
+  --popover-foreground: var(--color-navy);
+  --primary: var(--color-green-700);
+  --primary-foreground: #ffffff;
+  --secondary: var(--color-green-100);
+  --secondary-foreground: var(--color-green-800);
+  --muted: var(--color-green-100);
+  --muted-foreground: #3f5b56;
+  --accent: var(--color-green-100);
+  --accent-foreground: var(--color-green-800);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --border: var(--color-green-200);
+  --input: var(--color-green-200);
+  --ring: var(--color-green-700);
+  --chart-1: var(--color-green-300);
+  --chart-2: var(--color-green-500);
+  --chart-3: var(--color-green-700);
+  --chart-4: var(--color-gold-400);
+  --chart-5: var(--color-navy);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: var(--color-green-50);
+  --sidebar-foreground: var(--color-navy);
+  --sidebar-primary: var(--color-green-700);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--color-green-100);
+  --sidebar-accent-foreground: var(--color-green-800);
+  --sidebar-border: var(--color-green-200);
+  --sidebar-ring: var(--color-green-700);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: var(--color-navy);
+  --foreground: var(--color-green-50);
+  --card: #0a3550;
+  --card-foreground: var(--color-green-50);
+  --popover: #0a3550;
+  --popover-foreground: var(--color-green-50);
+  --primary: var(--color-green-400);
+  --primary-foreground: var(--color-navy);
+  --secondary: #0a3550;
+  --secondary-foreground: var(--color-green-100);
+  --muted: #0a3550;
+  --muted-foreground: var(--color-green-300);
+  --accent: #0a3550;
+  --accent-foreground: var(--color-green-100);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
+  --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --ring: var(--color-green-400);
+  --chart-1: var(--color-green-300);
+  --chart-2: var(--color-green-500);
+  --chart-3: var(--color-green-200);
+  --chart-4: var(--color-gold-400);
+  --chart-5: var(--color-green-100);
+  --sidebar: #0a3550;
+  --sidebar-foreground: var(--color-green-50);
+  --sidebar-primary: var(--color-green-400);
+  --sidebar-primary-foreground: var(--color-navy);
+  --sidebar-accent: oklch(1 0 0 / 8%);
+  --sidebar-accent-foreground: var(--color-green-100);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: var(--color-green-400);
 }
 
 @layer base {

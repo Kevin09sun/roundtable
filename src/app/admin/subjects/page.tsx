@@ -1,7 +1,8 @@
-import Link from "next/link"
 import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
+import { AdminNav } from "@/components/admin-nav"
+import { SiteHeader } from "@/components/site-header"
 import { AdminSubjectsTable } from "./admin-subjects-table"
 
 export default async function AdminSubjectsPage() {
@@ -32,38 +33,13 @@ export default async function AdminSubjectsPage() {
     .order("name")
 
   return (
-    <div className="flex flex-1 justify-center px-6 py-12">
-      <div className="flex w-full max-w-2xl flex-col gap-6">
-        <nav className="flex gap-4 text-sm">
-          <Link
-            href="/admin/requests"
-            className="text-muted-foreground underline-offset-4 hover:underline"
-          >
-            Requests
-          </Link>
-          <Link
-            href="/admin/pairings"
-            className="text-muted-foreground underline-offset-4 hover:underline"
-          >
-            Pairings
-          </Link>
-          <Link href="/admin/subjects" className="font-medium underline-offset-4 hover:underline">
-            Subjects
-          </Link>
-          <Link
-            href="/admin/issues"
-            className="text-muted-foreground underline-offset-4 hover:underline"
-          >
-            Issues
-          </Link>
-          <Link
-            href="/admin/reports"
-            className="text-muted-foreground underline-offset-4 hover:underline"
-          >
-            Reports
-          </Link>
-        </nav>
-        <AdminSubjectsTable subjects={subjects ?? []} />
+    <div className="flex flex-1 flex-col">
+      <SiteHeader userLabel={user.email ?? ""} isAdmin />
+      <div className="flex flex-1 justify-center px-6 py-12">
+        <div className="flex w-full max-w-2xl flex-col gap-6">
+          <AdminNav active="/admin/subjects" />
+          <AdminSubjectsTable subjects={subjects ?? []} />
+        </div>
       </div>
     </div>
   )

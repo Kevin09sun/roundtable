@@ -10,6 +10,7 @@ import {
   forgotPasswordSchema,
   type ForgotPasswordInput,
 } from "@/lib/validations/auth"
+import { BrandMark } from "@/components/brand-mark"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -50,7 +51,8 @@ export default function ForgotPasswordPage() {
 
   if (submitted) {
     return (
-      <div className="flex flex-1 items-center justify-center px-6 py-12">
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-12">
+        <BrandMark />
         <Card className="w-full max-w-sm">
           <CardHeader>
             <CardTitle>Check your email</CardTitle>
@@ -73,7 +75,8 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center px-6 py-12">
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-12">
+      <BrandMark />
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Reset your password</CardTitle>

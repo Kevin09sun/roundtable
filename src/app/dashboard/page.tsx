@@ -1,14 +1,16 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import { Clock, HandHeart, Users } from "lucide-react"
 
 import { createClient } from "@/lib/supabase/server"
-import { signOut } from "@/lib/actions/auth"
 import { LogSessionForm } from "@/components/log-session-form"
 import { SessionHistory, type SessionRow } from "@/components/session-history"
+import { SiteHeader } from "@/components/site-header"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -90,137 +92,102 @@ export default async function DashboardPage() {
   const volunteerHours = Math.round((volunteerMinutes / 60) * 10) / 10
 
   return (
-    <div className="flex flex-1 justify-center px-6 py-12">
-      <div className="flex w-full max-w-3xl flex-col gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Welcome, {profile?.full_name ?? user.email}</CardTitle>
-            <CardDescription>{user.email}</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <div>
-              <Badge variant={profile?.is_admin ? "default" : "secondary"}>
-                {profile?.is_admin ? "Admin" : "Member"}
-              </Badge>
-            </div>
-            <nav className="flex flex-col gap-2 text-sm">
-              <Link
-                href="/tutor"
-                className="text-primary underline-offset-4 hover:underline"
-              >
-                Offer to tutor
-              </Link>
-              <Link
-                href="/request-help"
-                className="text-primary underline-offset-4 hover:underline"
-              >
-                Request a tutor
-              </Link>
-              {profile?.is_admin && (
-                <>
-                  <Link
-                    href="/admin/requests"
-                    className="text-primary underline-offset-4 hover:underline"
-                  >
-                    Match requests (admin)
-                  </Link>
-                  <Link
-                    href="/admin/pairings"
-                    className="text-primary underline-offset-4 hover:underline"
-                  >
-                    View pairings (admin)
-                  </Link>
-                  <Link
-                    href="/admin/subjects"
-                    className="text-primary underline-offset-4 hover:underline"
-                  >
-                    Manage subjects (admin)
-                  </Link>
-                  <Link
-                    href="/admin/issues"
-                    className="text-primary underline-offset-4 hover:underline"
-                  >
-                    Issue queue (admin)
-                  </Link>
-                  <Link
-                    href="/admin/reports"
-                    className="text-primary underline-offset-4 hover:underline"
-                  >
-                    Reports (admin)
-                  </Link>
-                </>
-              )}
-            </nav>
-            <form action={signOut}>
-              <Button type="submit" variant="outline" className="w-full">
-                Sign out
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        {pairings.length === 0 ? (
+    <div className="flex flex-1 flex-col">
+      <SiteHeader
+        userLabel={profile?.full_name ?? user.email ?? ""}
+        isAdmin={profile?.is_admin ?? false}
+      />
+      <div className="flex flex-1 justify-center px-6 py-12">
+        <div className="flex w-full max-w-3xl flex-col gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>No pairings yet</CardTitle>
-              <CardDescription>
-                Your schedule will show up here once you&apos;re matched with someone.
-              </CardDescription>
+              <CardTitle>Welcome, {profile?.full_name ?? user.email}</CardTitle>
+              <CardDescription>{user.email}</CardDescription>
+              <CardAction>
+                <Badge variant={profile?.is_admin ? "default" : "secondary"}>
+                  {profile?.is_admin ? "Admin" : "Member"}
+                </Badge>
+              </CardAction>
             </CardHeader>
-            <CardContent className="flex flex-col gap-2 text-sm">
-              <p className="text-muted-foreground">
-                Offer to tutor a subject you know well, or request a tutor for a
-                subject you need help with -- an admin matches requests to
-                tutors.
-              </p>
-              <div className="flex gap-4">
-                <Link href="/tutor" className="text-primary underline-offset-4 hover:underline">
-                  Offer to tutor
-                </Link>
-                <Link
-                  href="/request-help"
-                  className="text-primary underline-offset-4 hover:underline"
-                >
-                  Request a tutor
-                </Link>
-              </div>
-            </CardContent>
           </Card>
-        ) : (
-          <>
-            {tutoring.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>People I tutor</CardTitle>
-                  <CardDescription>
-                    Volunteer hours logged (completed sessions): {volunteerHours}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-6">
-                  {tutoring.map((pairing) => (
-                    <PairingCard key={pairing.id} pairing={pairing} counterpart={pairing.tutee} />
-                  ))}
-                </CardContent>
-              </Card>
-            )}
 
-            {tutored.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>My tutors</CardTitle>
-                  <CardDescription>
-                    Meeting details are arranged directly between tutor and tutee.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-6">
-                  {tutored.map((pairing) => (
-                    <PairingCard key={pairing.id} pairing={pairing} counterpart={pairing.tutor} />
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-          </>
-        )}
+          {pairings.length === 0 ? (
+            <Card>
+              <CardHeader>
+                <div className="flex size-10 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+                  <HandHeart className="size-5" aria-hidden="true" />
+                </div>
+                <CardTitle className="mt-2">No pairings yet</CardTitle>
+                <CardDescription>
+                  Your schedule will show up here once you&apos;re matched with someone.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4 text-sm">
+                <p className="text-muted-foreground">
+                  Offer to tutor a subject you know well, or request a tutor for a
+                  subject you need help with -- an admin matches requests to
+                  tutors.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <Button asChild>
+                    <Link href="/tutor">Offer to tutor</Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <Link href="/request-help">Request a tutor</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {tutoring.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center gap-2">
+                      <Users className="size-4 text-muted-foreground" aria-hidden="true" />
+                      <CardTitle>People I tutor</CardTitle>
+                    </div>
+                    <CardDescription>
+                      Everyone you&apos;re currently tutoring, across every subject.
+                    </CardDescription>
+                    <CardAction>
+                      <div className="flex flex-col items-end rounded-lg border border-border bg-secondary px-3 py-1.5 text-secondary-foreground">
+                        <span className="flex items-center gap-1 text-xl font-semibold leading-none">
+                          <Clock className="size-4" aria-hidden="true" />
+                          {volunteerHours}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          volunteer hours logged
+                        </span>
+                      </div>
+                    </CardAction>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-6">
+                    {tutoring.map((pairing) => (
+                      <PairingCard key={pairing.id} pairing={pairing} counterpart={pairing.tutee} />
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
+              {tutored.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>My tutors</CardTitle>
+                    <CardDescription>
+                      Meeting details are arranged directly between tutor and tutee.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-6">
+                    {tutored.map((pairing) => (
+                      <PairingCard key={pairing.id} pairing={pairing} counterpart={pairing.tutor} />
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -246,7 +213,7 @@ function PairingCard({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant={pairing.status === "active" ? "default" : "secondary"}>
+          <Badge variant={pairing.status === "active" ? "success" : "pending"}>
             {pairing.status}
           </Badge>
           <Link

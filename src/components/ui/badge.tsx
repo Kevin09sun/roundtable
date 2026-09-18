@@ -18,6 +18,16 @@ const badgeVariants = cva(
         ghost:
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",
+        // Semantic status colors -- see STATUS_VARIANT maps in
+        // session-history.tsx, issue-history.tsx, admin-pairings-table.tsx,
+        // admin-issues-queue.tsx, admin-subjects-table.tsx, and
+        // request-help-form.tsx for which status maps to which variant.
+        success:
+          "bg-green-200 text-green-900 dark:bg-green-900/50 dark:text-green-200 [a]:hover:bg-green-300",
+        pending:
+          "bg-gold-100 text-navy dark:bg-gold-900/40 dark:text-gold-200 [a]:hover:bg-gold-200",
+        muted:
+          "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 [a]:hover:bg-zinc-200",
       },
     },
     defaultVariants: {

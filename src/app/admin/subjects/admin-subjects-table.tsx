@@ -138,7 +138,7 @@ export function AdminSubjectsTable({ subjects }: { subjects: Subject[] }) {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={subject.is_active ? "default" : "secondary"}>
+                    <Badge variant={subject.is_active ? "success" : "muted"}>
                       {subject.is_active ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>

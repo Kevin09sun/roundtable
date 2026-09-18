@@ -1,25 +1,27 @@
 import Link from "next/link";
 
+import { Button } from "@/components/ui/button";
+
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-      <h1 className="text-3xl font-semibold tracking-tight">Roundtable</h1>
+      <span
+        className="inline-block size-2.5 rounded-full bg-gold-400"
+        aria-hidden="true"
+      />
+      <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+        Roundtable
+      </h1>
       <p className="text-muted-foreground">
         Peer tutoring at Crescent School
       </p>
-      <div className="flex gap-4 text-sm">
-        <Link
-          href="/login"
-          className="text-primary underline-offset-4 hover:underline"
-        >
-          Log in
-        </Link>
-        <Link
-          href="/signup"
-          className="text-primary underline-offset-4 hover:underline"
-        >
-          Sign up
-        </Link>
+      <div className="mt-2 flex gap-3 text-sm">
+        <Button asChild>
+          <Link href="/login">Log in</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link href="/signup">Sign up</Link>
+        </Button>
       </div>
     </div>
   );

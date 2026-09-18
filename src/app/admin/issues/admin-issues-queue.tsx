@@ -30,10 +30,13 @@ export type IssueQueueRow = {
   raisedByName: string
 }
 
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
-  open: "outline",
+// Same semantic mapping as issue-history.tsx: open awaits action (pending),
+// in_progress is a neutral working state (secondary), resolved is done
+// (success).
+const STATUS_VARIANT: Record<string, "pending" | "secondary" | "success"> = {
+  open: "pending",
   in_progress: "secondary",
-  resolved: "default",
+  resolved: "success",
 }
 
 // Deterministic, locale/timezone-independent formatting -- same reasoning
@@ -119,7 +122,7 @@ function IssueCard({ issue }: { issue: IssueQueueRow }) {
       <CardHeader>
         <div className="flex items-center justify-between gap-2">
           <CardTitle>{issue.category.replace("_", " ")}</CardTitle>
-          <Badge variant={STATUS_VARIANT[issue.status] ?? "secondary"}>
+          <Badge variant={STATUS_VARIANT[issue.status] ?? "muted"}>
             {issue.status.replace("_", " ")}
           </Badge>
         </div>

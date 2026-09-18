@@ -35,10 +35,10 @@ export type PairingRow = {
   subjectName: string
 }
 
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
-  active: "default",
-  paused: "secondary",
-  ended: "outline",
+const STATUS_VARIANT: Record<string, "success" | "pending" | "muted"> = {
+  active: "success",
+  paused: "pending",
+  ended: "muted",
 }
 
 const FILTERS = ["all", "active", "paused", "ended"] as const
@@ -131,7 +131,7 @@ function PairingTableRow({ pairing }: { pairing: PairingRow }) {
       <TableCell className="text-muted-foreground">{pairing.meetingTime ?? "Not set"}</TableCell>
       <TableCell>
         <div className="flex flex-col gap-1">
-          <Badge variant={STATUS_VARIANT[pairing.status] ?? "secondary"}>{pairing.status}</Badge>
+          <Badge variant={STATUS_VARIANT[pairing.status] ?? "muted"}>{pairing.status}</Badge>
           {pairing.status === "ended" && pairing.endedAt && (
             <span className="text-muted-foreground text-xs">
               Ended {formatTimestamp(pairing.endedAt)}

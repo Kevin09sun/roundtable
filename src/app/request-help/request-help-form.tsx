@@ -57,10 +57,10 @@ type Props = {
   requests: RequestRow[]
 }
 
-const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
-  pending: "secondary",
-  matched: "default",
-  closed: "outline",
+const STATUS_VARIANT: Record<string, "pending" | "success" | "muted"> = {
+  pending: "pending",
+  matched: "success",
+  closed: "muted",
 }
 
 export function RequestHelpForm({ subjects, requests }: Props) {
@@ -156,7 +156,7 @@ export function RequestHelpForm({ subjects, requests }: Props) {
                   <TableRow key={request.id}>
                     <TableCell>{request.subjects?.name ?? "Unknown"}</TableCell>
                     <TableCell>
-                      <Badge variant={STATUS_VARIANT[request.status] ?? "secondary"}>
+                      <Badge variant={STATUS_VARIANT[request.status] ?? "muted"}>
                         {request.status}
                       </Badge>
                     </TableCell>

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
+import { SiteHeader } from "@/components/site-header"
 import { TutorForm } from "./tutor-form"
 
 // A separate route rather than folding this into /onboarding: onboarding is
@@ -27,8 +28,11 @@ export default async function TutorPage() {
   ])
 
   return (
-    <div className="flex flex-1 items-center justify-center px-6 py-12">
-      <TutorForm subjects={subjects ?? []} offerings={offerings ?? []} />
+    <div className="flex flex-1 flex-col">
+      <SiteHeader userLabel={user.email ?? ""} />
+      <div className="flex flex-1 items-center justify-center px-6 py-12">
+        <TutorForm subjects={subjects ?? []} offerings={offerings ?? []} />
+      </div>
     </div>
   )
 }
