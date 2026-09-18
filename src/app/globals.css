@@ -167,3 +167,29 @@
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  /*
+   * Gradient headline text built from the same green scale as the rest of
+   * the brand palette, with a solid-color fallback: browsers that don't
+   * support background-clip: text keep the flat --foreground color instead
+   * of rendering invisible text.
+   */
+  .text-gradient-brand {
+    color: var(--foreground);
+    background-image: linear-gradient(
+      to right,
+      var(--color-green-700),
+      var(--color-green-900)
+    );
+  }
+
+  @supports (background-clip: text) or (-webkit-background-clip: text) {
+    .text-gradient-brand {
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
+  }
+}

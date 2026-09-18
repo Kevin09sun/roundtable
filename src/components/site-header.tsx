@@ -34,7 +34,7 @@ export function SiteHeader({
   const onAdminSection = pathname?.startsWith("/admin") ?? false
 
   return (
-    <header className="border-b border-green-800 bg-primary text-primary-foreground">
+    <header className="border-b border-green-800 bg-linear-to-br from-green-700 to-green-900 text-primary-foreground">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-3">
         <Link
           href="/dashboard"

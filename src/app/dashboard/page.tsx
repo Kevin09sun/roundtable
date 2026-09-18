@@ -113,8 +113,8 @@ export default async function DashboardPage() {
 
           {pairings.length === 0 ? (
             <Card>
-              <CardHeader>
-                <div className="flex size-10 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+              <CardHeader className="bg-linear-to-br from-green-50 to-green-100">
+                <div className="flex size-10 items-center justify-center rounded-full bg-linear-to-br from-green-100 to-green-200 text-secondary-foreground">
                   <HandHeart className="size-5" aria-hidden="true" />
                 </div>
                 <CardTitle className="mt-2">No pairings yet</CardTitle>
@@ -142,7 +142,7 @@ export default async function DashboardPage() {
             <>
               {tutoring.length > 0 && (
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="bg-linear-to-br from-green-50 to-green-100">
                     <div className="flex items-center gap-2">
                       <Users className="size-4 text-muted-foreground" aria-hidden="true" />
                       <CardTitle>People I tutor</CardTitle>
@@ -172,7 +172,7 @@ export default async function DashboardPage() {
 
               {tutored.length > 0 && (
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="bg-linear-to-br from-green-50 to-green-100">
                     <CardTitle>My tutors</CardTitle>
                     <CardDescription>
                       Meeting details are arranged directly between tutor and tutee.
