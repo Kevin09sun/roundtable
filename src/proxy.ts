@@ -22,8 +22,9 @@ const PROTECTED_PREFIXES = [
 // and authorization for admin-only data should not depend on it being right.
 const ADMIN_ONLY_PREFIXES = ["/admin"]
 
-// Pages a signed-in user shouldn't be able to re-visit.
-const AUTH_ONLY_WHEN_SIGNED_OUT = new Set(["/login", "/signup"])
+// Pages a signed-in user shouldn't be able to re-visit: the auth forms and
+// the "/" splash (its Log in / Sign up buttons are pointless once signed in).
+const AUTH_ONLY_WHEN_SIGNED_OUT = new Set(["/login", "/signup", "/"])
 
 function matchesPrefix(pathname: string, prefixes: string[]) {
   return prefixes.some(
