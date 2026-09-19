@@ -1,13 +1,17 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { cn } from "cn"
 
 import { requestTutorHelp } from "@/lib/actions/tutee-request"
 import { requestHelpSchema, type RequestHelpInput } from "@/lib/validations/intake"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Card,
   CardContent,
@@ -24,7 +28,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { SubjectCombobox } from "@/components/subject-combobox"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
   Table,
   TableBody,
@@ -60,6 +64,14 @@ const STATUS_VARIANT: Record<string, "pending" | "success" | "muted"> = {
 export function RequestHelpForm({ subjects, requests }: Props) {
   const router = useRouter()
 
+  // Local UI state only -- never part of the zod schema or submitted
+  // payload. Filtering happens at render time, never by touching the
+  // `subjects` list itself. Mirrors src/app/tutor/tutor-form.tsx.
+  const [subjectQuery, setSubjectQuery] = useState("")
+  const trimmedQuery = subjectQuery.trim().toLowerCase()
+  const isMatch = (name: string) =>
+    trimmedQuery === "" || name.toLowerCase().includes(trimmedQuery)
+
   const form = useForm<RequestHelpInput>({
     resolver: zodResolver(requestHelpSchema),
     defaultValues: { subjectId: "" },
@@ -78,32 +90,91 @@ export function RequestHelpForm({ subjects, requests }: Props) {
   }
 
   return (
-    <div className="flex w-full max-w-7xl flex-col gap-6">
+    <>
       <Card>
         <CardHeader>
           <CardTitle>Request a tutor</CardTitle>
           <CardDescription>Pick a subject you need help with.</CardDescription>
         </CardHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <CardContent className="flex flex-col gap-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-(--card-spacing)"
+          >
+            <CardContent className="flex flex-col gap-6">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="subject-filter">Filter subjects</Label>
+                <Input
+                  id="subject-filter"
+                  type="text"
+                  placeholder="Search courses..."
+                  value={subjectQuery}
+                  onChange={(e) => setSubjectQuery(e.target.value)}
+                />
+              </div>
               <FormField
                 control={form.control}
                 name="subjectId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Subject</FormLabel>
-                    <FormControl>
-                      <SubjectCombobox
-                        subjects={subjects}
-                        value={field.value}
-                        onChange={field.onChange}
-                        placeholder="Select a subject"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  // A subject that's already selected must stay visible
+                  // even if the filter no longer matches it -- the choice
+                  // must never appear to vanish. Mirrors the same rule in
+                  // src/app/tutor/tutor-form.tsx.
+                  const anyVisible = subjects.some(
+                    (subject) =>
+                      subject.id === field.value || isMatch(subject.name)
+                  )
+
+                  return (
+                    <FormItem>
+                      <FormLabel>Subject</FormLabel>
+                      {!anyVisible && (
+                        <p className="text-muted-foreground text-sm">
+                          No courses match.
+                        </p>
+                      )}
+                      <FormControl>
+                        <RadioGroup
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
+                        >
+                          {subjects.map((subject) => {
+                            const isSelected = subject.id === field.value
+
+                            // Render-time filtering ONLY, same as
+                            // tutor-form.tsx: a subject that doesn't match
+                            // the current filter, and isn't selected,
+                            // simply renders nothing.
+                            if (!isSelected && !isMatch(subject.name)) {
+                              return null
+                            }
+
+                            return (
+                              <div
+                                key={subject.id}
+                                className={cn(
+                                  "flex items-center gap-2 rounded-lg border p-3",
+                                  isSelected &&
+                                    "border-primary bg-primary/5 ring-1 ring-primary"
+                                )}
+                              >
+                                <RadioGroupItem
+                                  value={subject.id}
+                                  id={`subject-${subject.id}`}
+                                />
+                                <Label htmlFor={`subject-${subject.id}`}>
+                                  {subject.name}
+                                </Label>
+                              </div>
+                            )
+                          })}
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )
+                }}
               />
               {form.formState.errors.root && (
                 <p className="text-destructive text-sm">
@@ -155,6 +226,6 @@ export function RequestHelpForm({ subjects, requests }: Props) {
           )}
         </CardContent>
       </Card>
-    </div>
+    </>
   )
 }

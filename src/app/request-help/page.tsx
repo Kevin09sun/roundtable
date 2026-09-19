@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
+import { PageShell } from "@/components/page-shell"
 import { SiteHeader } from "@/components/site-header"
 import { RequestHelpForm, type RequestRow } from "./request-help-form"
 
@@ -28,7 +29,7 @@ export default async function RequestHelpPage() {
   return (
     <div className="flex flex-1 flex-col">
       <SiteHeader userLabel={user.email ?? ""} />
-      <div className="flex flex-1 items-center justify-center px-6 py-12">
+      <PageShell>
         <RequestHelpForm
           subjects={subjects ?? []}
           // subject_id -> subjects.id is a to-one FK, so PostgREST embeds a
@@ -40,7 +41,7 @@ export default async function RequestHelpPage() {
           // rendered "Unknown" because .subjects was read as an array).
           requests={(requests ?? []) as unknown as RequestRow[]}
         />
-      </div>
+      </PageShell>
     </div>
   )
 }

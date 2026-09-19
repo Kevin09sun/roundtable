@@ -10,7 +10,7 @@
  */
 export function PageShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-1 justify-center px-6 py-12">
+    <div className="flex flex-1 justify-center px-6 py-8">
       <div className="flex w-full max-w-7xl flex-col gap-6">{children}</div>
     </div>
   )

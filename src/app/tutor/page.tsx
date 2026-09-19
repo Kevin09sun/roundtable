@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
+import { PageShell } from "@/components/page-shell"
 import { SiteHeader } from "@/components/site-header"
 import { TutorForm } from "./tutor-form"
 
@@ -30,9 +31,9 @@ export default async function TutorPage() {
   return (
     <div className="flex flex-1 flex-col">
       <SiteHeader userLabel={user.email ?? ""} />
-      <div className="flex flex-1 items-center justify-center px-6 py-12">
+      <PageShell>
         <TutorForm subjects={subjects ?? []} offerings={offerings ?? []} />
-      </div>
+      </PageShell>
     </div>
   )
 }

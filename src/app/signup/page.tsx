@@ -90,7 +90,10 @@ export default function SignupPage() {
           </CardDescription>
         </CardHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-(--card-spacing)"
+          >
             <CardContent className="flex flex-col gap-4">
               <FormField
                 control={form.control}

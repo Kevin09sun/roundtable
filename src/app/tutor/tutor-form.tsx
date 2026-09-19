@@ -88,7 +88,7 @@ export function TutorForm({ subjects, offerings }: Props) {
 
   if (subjects.length === 0) {
     return (
-      <Card className="w-full max-w-7xl">
+      <Card>
         <CardHeader>
           <CardTitle>Offer to tutor</CardTitle>
           <CardDescription>
@@ -101,14 +101,17 @@ export function TutorForm({ subjects, offerings }: Props) {
   }
 
   return (
-    <Card className="w-full max-w-7xl">
+    <Card>
       <CardHeader>
         <CardTitle>Offer to tutor</CardTitle>
         <CardDescription>
           Pick the subjects you can help with. Editable anytime.
         </CardDescription>
       </CardHeader>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-(--card-spacing)"
+      >
         <CardContent className="flex flex-col gap-6">
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between gap-2">
