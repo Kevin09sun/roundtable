@@ -4,6 +4,7 @@ import { Clock, HandHeart, Users } from "lucide-react"
 
 import { createClient } from "@/lib/supabase/server"
 import { LogSessionForm } from "@/components/log-session-form"
+import { PageShell } from "@/components/page-shell"
 import { SessionHistory, type SessionRow } from "@/components/session-history"
 import { SiteHeader } from "@/components/site-header"
 import { Button } from "@/components/ui/button"
@@ -97,98 +98,96 @@ export default async function DashboardPage() {
         userLabel={profile?.full_name ?? user.email ?? ""}
         isAdmin={profile?.is_admin ?? false}
       />
-      <div className="flex flex-1 justify-center px-6 py-12">
-        <div className="flex w-full max-w-3xl flex-col gap-6">
+      <PageShell>
+        <Card>
+          <CardHeader>
+            <CardTitle>Welcome, {profile?.full_name ?? user.email}</CardTitle>
+            <CardDescription>{user.email}</CardDescription>
+            <CardAction>
+              <Badge variant={profile?.is_admin ? "default" : "secondary"}>
+                {profile?.is_admin ? "Admin" : "Member"}
+              </Badge>
+            </CardAction>
+          </CardHeader>
+        </Card>
+
+        {pairings.length === 0 ? (
           <Card>
-            <CardHeader>
-              <CardTitle>Welcome, {profile?.full_name ?? user.email}</CardTitle>
-              <CardDescription>{user.email}</CardDescription>
-              <CardAction>
-                <Badge variant={profile?.is_admin ? "default" : "secondary"}>
-                  {profile?.is_admin ? "Admin" : "Member"}
-                </Badge>
-              </CardAction>
+            <CardHeader className="bg-linear-to-br from-green-50 to-green-100">
+              <div className="flex size-10 items-center justify-center rounded-full bg-linear-to-br from-green-100 to-green-200 text-secondary-foreground">
+                <HandHeart className="size-5" aria-hidden="true" />
+              </div>
+              <CardTitle className="mt-2">No pairings yet</CardTitle>
+              <CardDescription>
+                Your schedule will show up here once you&apos;re matched with someone.
+              </CardDescription>
             </CardHeader>
+            <CardContent className="flex flex-col gap-4 text-sm">
+              <p className="text-muted-foreground">
+                Offer to tutor a subject you know well, or request a tutor for a
+                subject you need help with -- an admin matches requests to
+                tutors.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Button asChild>
+                  <Link href="/tutor">Offer to tutor</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href="/request-help">Request a tutor</Link>
+                </Button>
+              </div>
+            </CardContent>
           </Card>
-
-          {pairings.length === 0 ? (
-            <Card>
-              <CardHeader className="bg-linear-to-br from-green-50 to-green-100">
-                <div className="flex size-10 items-center justify-center rounded-full bg-linear-to-br from-green-100 to-green-200 text-secondary-foreground">
-                  <HandHeart className="size-5" aria-hidden="true" />
-                </div>
-                <CardTitle className="mt-2">No pairings yet</CardTitle>
-                <CardDescription>
-                  Your schedule will show up here once you&apos;re matched with someone.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4 text-sm">
-                <p className="text-muted-foreground">
-                  Offer to tutor a subject you know well, or request a tutor for a
-                  subject you need help with -- an admin matches requests to
-                  tutors.
-                </p>
-                <div className="flex flex-wrap gap-3">
-                  <Button asChild>
-                    <Link href="/tutor">Offer to tutor</Link>
-                  </Button>
-                  <Button asChild variant="outline">
-                    <Link href="/request-help">Request a tutor</Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              {tutoring.length > 0 && (
-                <Card>
-                  <CardHeader className="bg-linear-to-br from-green-50 to-green-100">
-                    <div className="flex items-center gap-2">
-                      <Users className="size-4 text-muted-foreground" aria-hidden="true" />
-                      <CardTitle>People I tutor</CardTitle>
+        ) : (
+          <>
+            {tutoring.length > 0 && (
+              <Card>
+                <CardHeader className="bg-linear-to-br from-green-50 to-green-100">
+                  <div className="flex items-center gap-2">
+                    <Users className="size-4 text-muted-foreground" aria-hidden="true" />
+                    <CardTitle>People I tutor</CardTitle>
+                  </div>
+                  <CardDescription>
+                    Everyone you&apos;re currently tutoring, across every subject.
+                  </CardDescription>
+                  <CardAction>
+                    <div className="flex flex-col items-end rounded-lg border border-border bg-secondary px-3 py-1.5 text-secondary-foreground">
+                      <span className="flex items-center gap-1 text-xl font-semibold leading-none">
+                        <Clock className="size-4" aria-hidden="true" />
+                        {volunteerHours}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        volunteer hours logged
+                      </span>
                     </div>
-                    <CardDescription>
-                      Everyone you&apos;re currently tutoring, across every subject.
-                    </CardDescription>
-                    <CardAction>
-                      <div className="flex flex-col items-end rounded-lg border border-border bg-secondary px-3 py-1.5 text-secondary-foreground">
-                        <span className="flex items-center gap-1 text-xl font-semibold leading-none">
-                          <Clock className="size-4" aria-hidden="true" />
-                          {volunteerHours}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          volunteer hours logged
-                        </span>
-                      </div>
-                    </CardAction>
-                  </CardHeader>
-                  <CardContent className="flex flex-col gap-6">
-                    {tutoring.map((pairing) => (
-                      <PairingCard key={pairing.id} pairing={pairing} counterpart={pairing.tutee} />
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
+                  </CardAction>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                  {tutoring.map((pairing) => (
+                    <PairingCard key={pairing.id} pairing={pairing} counterpart={pairing.tutee} />
+                  ))}
+                </CardContent>
+              </Card>
+            )}
 
-              {tutored.length > 0 && (
-                <Card>
-                  <CardHeader className="bg-linear-to-br from-green-50 to-green-100">
-                    <CardTitle>My tutors</CardTitle>
-                    <CardDescription>
-                      Meeting details are arranged directly between tutor and tutee.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex flex-col gap-6">
-                    {tutored.map((pairing) => (
-                      <PairingCard key={pairing.id} pairing={pairing} counterpart={pairing.tutor} />
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
-            </>
-          )}
-        </div>
-      </div>
+            {tutored.length > 0 && (
+              <Card>
+                <CardHeader className="bg-linear-to-br from-green-50 to-green-100">
+                  <CardTitle>My tutors</CardTitle>
+                  <CardDescription>
+                    Meeting details are arranged directly between tutor and tutee.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                  {tutored.map((pairing) => (
+                    <PairingCard key={pairing.id} pairing={pairing} counterpart={pairing.tutor} />
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+          </>
+        )}
+      </PageShell>
     </div>
   )
 }
@@ -201,7 +200,7 @@ function PairingCard({
   counterpart: { id: string; full_name: string } | null
 }) {
   return (
-    <div className="flex flex-col gap-3 border-b pb-6 last:border-b-0 last:pb-0">
+    <div className="flex flex-col gap-3 rounded-lg border p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <div className="font-medium">

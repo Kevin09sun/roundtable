@@ -3,6 +3,7 @@ import { Download } from "lucide-react"
 
 import { createClient } from "@/lib/supabase/server"
 import { AdminNav } from "@/components/admin-nav"
+import { PageShell } from "@/components/page-shell"
 import { SiteHeader } from "@/components/site-header"
 import { Button } from "@/components/ui/button"
 import {
@@ -86,58 +87,56 @@ export default async function AdminReportsPage() {
   return (
     <div className="flex flex-1 flex-col">
       <SiteHeader userLabel={user.email ?? ""} isAdmin />
-      <div className="flex flex-1 justify-center px-6 py-12">
-        <div className="flex w-full max-w-3xl flex-col gap-6">
-          <AdminNav active="/admin/reports" />
+      <PageShell>
+        <AdminNav active="/admin/reports" />
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Volunteer hours</CardTitle>
-              <CardDescription>
-                Club-wide, per tutor -- sum of minutes on completed sessions.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              <div className="flex flex-wrap gap-2">
-                <Button asChild size="sm" variant="outline">
-                  <a href="/admin/reports/export/sessions">
-                    <Download data-icon="inline-start" />
-                    Export sessions CSV
-                  </a>
-                </Button>
-                <Button asChild size="sm" variant="outline">
-                  <a href="/admin/reports/export/hours">
-                    <Download data-icon="inline-start" />
-                    Export hours CSV
-                  </a>
-                </Button>
-              </div>
-              {hoursRows.length === 0 ? (
-                <p className="text-muted-foreground text-sm">No completed sessions yet.</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tutor</TableHead>
-                      <TableHead>Minutes</TableHead>
-                      <TableHead>Hours</TableHead>
+        <Card>
+          <CardHeader>
+            <CardTitle>Volunteer hours</CardTitle>
+            <CardDescription>
+              Club-wide, per tutor -- sum of minutes on completed sessions.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <div className="flex flex-wrap gap-2">
+              <Button asChild size="sm" variant="outline">
+                <a href="/admin/reports/export/sessions">
+                  <Download data-icon="inline-start" />
+                  Export sessions CSV
+                </a>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <a href="/admin/reports/export/hours">
+                  <Download data-icon="inline-start" />
+                  Export hours CSV
+                </a>
+              </Button>
+            </div>
+            {hoursRows.length === 0 ? (
+              <p className="text-muted-foreground text-sm">No completed sessions yet.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tutor</TableHead>
+                    <TableHead>Minutes</TableHead>
+                    <TableHead>Hours</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {hoursRows.map((row) => (
+                    <TableRow key={row.tutorId}>
+                      <TableCell>{row.name}</TableCell>
+                      <TableCell>{row.minutes}</TableCell>
+                      <TableCell className="font-medium">{row.hours}</TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {hoursRows.map((row) => (
-                      <TableRow key={row.tutorId}>
-                        <TableCell>{row.name}</TableCell>
-                        <TableCell>{row.minutes}</TableCell>
-                        <TableCell className="font-medium">{row.hours}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </PageShell>
     </div>
   )
 }

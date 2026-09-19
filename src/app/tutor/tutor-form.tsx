@@ -88,7 +88,7 @@ export function TutorForm({ subjects, offerings }: Props) {
 
   if (subjects.length === 0) {
     return (
-      <Card className="w-full max-w-lg">
+      <Card className="w-full max-w-7xl">
         <CardHeader>
           <CardTitle>Offer to tutor</CardTitle>
           <CardDescription>
@@ -101,7 +101,7 @@ export function TutorForm({ subjects, offerings }: Props) {
   }
 
   return (
-    <Card className="w-full max-w-lg">
+    <Card className="w-full max-w-7xl">
       <CardHeader>
         <CardTitle>Offer to tutor</CardTitle>
         <CardDescription>
@@ -128,72 +128,83 @@ export function TutorForm({ subjects, offerings }: Props) {
           {!anyVisible && (
             <p className="text-muted-foreground text-sm">No courses match.</p>
           )}
-          {fields.map((_field, index) => {
-            const subject = subjects[index]
-            const offering = watchedEntries[index]?.offering
+          {/*
+            A CSS grid on the container changes layout only, not array
+            order -- fields.map below still walks EVERY index (with its
+            existing render-time `return null` for filtered-out rows), so
+            entries[index] stays aligned with subjects[index] exactly as
+            before. Grid rows size to their tallest cell automatically, so
+            a checked course whose "Max tutees" / "Availability note"
+            fields expand never overlaps or clips its neighbours.
+          */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {fields.map((_field, index) => {
+              const subject = subjects[index]
+              const offering = watchedEntries[index]?.offering
 
-            // Render-time filtering ONLY -- `fields`/`entries` is never
-            // filtered, sliced, or reordered. `fields.map` still walks
-            // every index so entries[index] stays aligned with
-            // subjects[index] (form.register(`entries.${index}...`)
-            // depends on that). A row that doesn't match the current
-            // filter, and isn't checked, simply renders nothing.
-            // Checked rows always render regardless of the filter, so a
-            // tutor never sees their selection appear to vanish.
-            if (!offering && !isMatch(subject.name)) {
-              return null
-            }
+              // Render-time filtering ONLY -- `fields`/`entries` is never
+              // filtered, sliced, or reordered. `fields.map` still walks
+              // every index so entries[index] stays aligned with
+              // subjects[index] (form.register(`entries.${index}...`)
+              // depends on that). A row that doesn't match the current
+              // filter, and isn't checked, simply renders nothing.
+              // Checked rows always render regardless of the filter, so a
+              // tutor never sees their selection appear to vanish.
+              if (!offering && !isMatch(subject.name)) {
+                return null
+              }
 
-            // Keyed and id'd by subject.id, NOT react-hook-form's field.id:
-            // field.id is a fresh random value on every render pass, so
-            // using it for a DOM id causes a server/client hydration
-            // mismatch (the id generated during SSR never matches the one
-            // generated during client hydration). subject.id is stable
-            // data from the database and identical on both passes.
-            return (
-              <div
-                key={subject.id}
-                className="flex flex-col gap-3 border-b pb-4 last:border-b-0 last:pb-0"
-              >
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id={`offering-${subject.id}`}
-                    checked={offering}
-                    onCheckedChange={(checked) =>
-                      form.setValue(`entries.${index}.offering`, checked === true)
-                    }
-                  />
-                  <Label htmlFor={`offering-${subject.id}`}>{subject.name}</Label>
-                </div>
-                {offering && (
-                  <div className="flex flex-col gap-3 pl-6">
-                    <div className="flex flex-col gap-1.5">
-                      <Label htmlFor={`max-${subject.id}`}>Max tutees</Label>
-                      <Input
-                        id={`max-${subject.id}`}
-                        type="number"
-                        min={1}
-                        max={10}
-                        {...form.register(`entries.${index}.maxTutees`, {
-                          valueAsNumber: true,
-                        })}
-                      />
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <Label htmlFor={`note-${subject.id}`}>
-                        Availability note (optional)
-                      </Label>
-                      <Textarea
-                        id={`note-${subject.id}`}
-                        rows={2}
-                        {...form.register(`entries.${index}.availabilityNote`)}
-                      />
-                    </div>
+              // Keyed and id'd by subject.id, NOT react-hook-form's field.id:
+              // field.id is a fresh random value on every render pass, so
+              // using it for a DOM id causes a server/client hydration
+              // mismatch (the id generated during SSR never matches the one
+              // generated during client hydration). subject.id is stable
+              // data from the database and identical on both passes.
+              return (
+                <div
+                  key={subject.id}
+                  className="flex flex-col gap-3 rounded-lg border p-3"
+                >
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id={`offering-${subject.id}`}
+                      checked={offering}
+                      onCheckedChange={(checked) =>
+                        form.setValue(`entries.${index}.offering`, checked === true)
+                      }
+                    />
+                    <Label htmlFor={`offering-${subject.id}`}>{subject.name}</Label>
                   </div>
-                )}
-              </div>
-            )
-          })}
+                  {offering && (
+                    <div className="flex flex-col gap-3 pl-6">
+                      <div className="flex flex-col gap-1.5">
+                        <Label htmlFor={`max-${subject.id}`}>Max tutees</Label>
+                        <Input
+                          id={`max-${subject.id}`}
+                          type="number"
+                          min={1}
+                          max={10}
+                          {...form.register(`entries.${index}.maxTutees`, {
+                            valueAsNumber: true,
+                          })}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <Label htmlFor={`note-${subject.id}`}>
+                          Availability note (optional)
+                        </Label>
+                        <Textarea
+                          id={`note-${subject.id}`}
+                          rows={2}
+                          {...form.register(`entries.${index}.availabilityNote`)}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
           {form.formState.errors.root && (
             <p className="text-destructive text-sm">
               {form.formState.errors.root.message}

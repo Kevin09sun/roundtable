@@ -78,7 +78,7 @@ export function RequestHelpForm({ subjects, requests }: Props) {
   }
 
   return (
-    <div className="flex w-full max-w-lg flex-col gap-6">
+    <div className="flex w-full max-w-7xl flex-col gap-6">
       <Card>
         <CardHeader>
           <CardTitle>Request a tutor</CardTitle>

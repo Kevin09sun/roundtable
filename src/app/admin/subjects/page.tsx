@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 
 import { createClient } from "@/lib/supabase/server"
 import { AdminNav } from "@/components/admin-nav"
+import { PageShell } from "@/components/page-shell"
 import { SiteHeader } from "@/components/site-header"
 import { AdminSubjectsTable } from "./admin-subjects-table"
 
@@ -35,12 +36,10 @@ export default async function AdminSubjectsPage() {
   return (
     <div className="flex flex-1 flex-col">
       <SiteHeader userLabel={user.email ?? ""} isAdmin />
-      <div className="flex flex-1 justify-center px-6 py-12">
-        <div className="flex w-full max-w-2xl flex-col gap-6">
-          <AdminNav active="/admin/subjects" />
-          <AdminSubjectsTable subjects={subjects ?? []} />
-        </div>
-      </div>
+      <PageShell>
+        <AdminNav active="/admin/subjects" />
+        <AdminSubjectsTable subjects={subjects ?? []} />
+      </PageShell>
     </div>
   )
 }

@@ -8,6 +8,7 @@ import { MeetingTimeEditor } from "@/components/meeting-time-editor"
 import { SessionHistory, type SessionRow } from "@/components/session-history"
 import { ReportIssueForm } from "@/components/report-issue-form"
 import { IssueHistory, type IssueRow } from "@/components/issue-history"
+import { PageShell } from "@/components/page-shell"
 import { SiteHeader } from "@/components/site-header"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -110,90 +111,88 @@ export default async function PairingDetailPage({
   return (
     <div className="flex flex-1 flex-col">
       <SiteHeader userLabel={user.email ?? ""} />
-      <div className="flex flex-1 justify-center px-6 py-12">
-        <div className="flex w-full max-w-2xl flex-col gap-6">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-1.5 text-muted-foreground text-sm underline-offset-4 hover:underline"
-          >
-            <ArrowLeft className="size-3.5" aria-hidden="true" />
-            Back to dashboard
-          </Link>
+      <PageShell>
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-muted-foreground text-sm underline-offset-4 hover:underline"
+        >
+          <ArrowLeft className="size-3.5" aria-hidden="true" />
+          Back to dashboard
+        </Link>
 
+        <Card>
+          <CardHeader>
+            <CardTitle>{pairing.subject?.name ?? "Unknown subject"}</CardTitle>
+            <CardDescription>
+              Tutor: {pairing.tutor?.full_name ?? "Unknown"} -- Tutee:{" "}
+              {pairing.tutee?.full_name ?? "Unknown"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <Badge variant={statusVariant}>{pairing.status}</Badge>
+              {pairing.status === "ended" && pairing.ended_reason && (
+                <span className="text-muted-foreground text-sm">
+                  Ended -- {pairing.ended_reason}
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium">Meeting time</span>
+              <MeetingTimeEditor
+                pairingId={pairing.id}
+                meetingTime={pairing.meeting_time}
+                editable={canEditMeetingTime}
+              />
+            </div>
+
+            <div className="text-muted-foreground text-sm">
+              Volunteer minutes logged on this pairing (completed sessions): {completedMinutes}
+            </div>
+          </CardContent>
+        </Card>
+
+        {isParticipant && pairing.status !== "ended" && (
           <Card>
             <CardHeader>
-              <CardTitle>{pairing.subject?.name ?? "Unknown subject"}</CardTitle>
-              <CardDescription>
-                Tutor: {pairing.tutor?.full_name ?? "Unknown"} -- Tutee:{" "}
-                {pairing.tutee?.full_name ?? "Unknown"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              <div className="flex items-center gap-2">
-                <Badge variant={statusVariant}>{pairing.status}</Badge>
-                {pairing.status === "ended" && pairing.ended_reason && (
-                  <span className="text-muted-foreground text-sm">
-                    Ended -- {pairing.ended_reason}
-                  </span>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium">Meeting time</span>
-                <MeetingTimeEditor
-                  pairingId={pairing.id}
-                  meetingTime={pairing.meeting_time}
-                  editable={canEditMeetingTime}
-                />
-              </div>
-
-              <div className="text-muted-foreground text-sm">
-                Volunteer minutes logged on this pairing (completed sessions): {completedMinutes}
-              </div>
-            </CardContent>
-          </Card>
-
-          {isParticipant && pairing.status !== "ended" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Log a session</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <LogSessionForm pairingId={pairing.id} />
-              </CardContent>
-            </Card>
-          )}
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Session history</CardTitle>
+              <CardTitle>Log a session</CardTitle>
             </CardHeader>
             <CardContent>
-              <SessionHistory sessions={sessions} />
+              <LogSessionForm pairingId={pairing.id} />
             </CardContent>
           </Card>
+        )}
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Report a problem</CardTitle>
-              <CardDescription>
-                Scheduling conflict, a no-show, a mismatch, or anything else -- file it here
-                and an admin will follow up. This app still doesn&apos;t end a pairing for
-                cause on its own; an admin does that once they&apos;ve looked into it.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              {isParticipant && <ReportIssueForm pairingId={pairing.id} />}
-              <div className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium">
-                  {isParticipant ? "Your reported issues" : "Reported issues"}
-                </span>
-                <IssueHistory issues={issues} />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Session history</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SessionHistory sessions={sessions} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Report a problem</CardTitle>
+            <CardDescription>
+              Scheduling conflict, a no-show, a mismatch, or anything else -- file it here
+              and an admin will follow up. This app still doesn&apos;t end a pairing for
+              cause on its own; an admin does that once they&apos;ve looked into it.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            {isParticipant && <ReportIssueForm pairingId={pairing.id} />}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-sm font-medium">
+                {isParticipant ? "Your reported issues" : "Reported issues"}
+              </span>
+              <IssueHistory issues={issues} />
+            </div>
+          </CardContent>
+        </Card>
+      </PageShell>
     </div>
   )
 }
