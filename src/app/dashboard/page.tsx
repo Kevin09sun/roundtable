@@ -7,6 +7,7 @@ import { LogSessionForm } from "@/components/log-session-form"
 import { PageShell } from "@/components/page-shell"
 import { SessionHistory, type SessionRow } from "@/components/session-history"
 import { SiteHeader } from "@/components/site-header"
+import { StatNote } from "@/components/stat-note"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -91,6 +92,11 @@ export default async function DashboardPage() {
     0
   )
   const volunteerHours = Math.round((volunteerMinutes / 60) * 10) / 10
+  const sessionsDone = (hoursData ?? []).length
+  // First active pairing that has a meeting time set -- meeting_time is
+  // free text ("Tuesdays at lunch"), never a date, so this is just a
+  // string lookup, not a soonest-upcoming-date computation.
+  const upcomingPairing = pairings.find((p) => p.meeting_time)
 
   return (
     <div className="flex flex-1 flex-col">
@@ -110,6 +116,35 @@ export default async function DashboardPage() {
             </CardAction>
           </CardHeader>
         </Card>
+
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 px-1 md:grid-cols-4">
+          <StatNote
+            value={volunteerHours}
+            label="Hours tutored"
+            rotate="-rotate-2"
+            tone="light"
+          />
+          <StatNote
+            value={sessionsDone}
+            label="Sessions done"
+            rotate="rotate-1"
+            tone="medium"
+          />
+          <StatNote
+            value={pairings.length}
+            label="Active pairings"
+            rotate="-rotate-1"
+            tone="bold"
+          />
+          <StatNote
+            value={upcomingPairing?.meeting_time ?? "No time set yet"}
+            label="Upcoming"
+            detail={upcomingPairing?.subject?.name}
+            rotate="rotate-2"
+            tone="medium"
+            valueClassName="text-lg sm:text-xl"
+          />
+        </div>
 
         {pairings.length === 0 ? (
           <Card>
