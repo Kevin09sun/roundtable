@@ -1,5 +1,10 @@
 "use server"
 
+import { after } from "next/server"
+
+import { sendEmail } from "@/lib/email/send"
+import { pairingEmail } from "@/lib/email/templates"
+import { getOrigin } from "@/lib/request-origin"
 import { createClient } from "@/lib/supabase/server"
 import {
   createPairingSchema,
@@ -109,6 +114,17 @@ function friendlyPairingError(error: { code?: string; message: string }): string
   return error.message
 }
 
+// Shape of the row returned by public.pairing_notification_details() --
+// see its migration (20260924130000_create_pairing_notification_details.sql)
+// for why this has to be a SECURITY DEFINER RPC rather than a plain select.
+type PairingNotificationDetails = {
+  tutor_name: string
+  tutor_email: string
+  tutee_name: string
+  tutee_email: string
+  subject_name: string
+}
+
 export async function createPairing(input: CreatePairingInput): Promise<ActionResult> {
   const parsed = createPairingSchema.safeParse(input)
   if (!parsed.success) {
@@ -117,16 +133,68 @@ export async function createPairing(input: CreatePairingInput): Promise<ActionRe
   const { requestId, tutorId, tuteeId, subjectId } = parsed.data
 
   const supabase = await createClient()
-  const { error } = await supabase.from("pairings").insert({
-    tutor_id: tutorId,
-    tutee_id: tuteeId,
-    subject_id: subjectId,
-    request_id: requestId,
-  })
+  const { data, error } = await supabase
+    .from("pairings")
+    .insert({
+      tutor_id: tutorId,
+      tutee_id: tuteeId,
+      subject_id: subjectId,
+      request_id: requestId,
+    })
+    .select("id")
+    .single()
 
   if (error) {
     return { error: friendlyPairingError(error) }
   }
+
+  // public.pairing_notification_details is the only thing allowed to read
+  // auth.users.email for the tutor/tutee (see its migration for why) --
+  // called here, with the request-scoped client, because the RPC needs
+  // this admin's session cookies. Kept outside `after()` for that reason;
+  // the emails themselves (no further DB access needed) are deferred into
+  // `after()` below so they never slow down this action's response, and a
+  // failure here must never turn a successful pairing into a reported
+  // error -- the pairing already exists.
+  const origin = await getOrigin()
+  const pairingUrl = `${origin}/pairings/${data.id}`
+
+  const { data: rawDetails, error: detailsError } = await supabase
+    .rpc("pairing_notification_details", { p_pairing_id: data.id })
+    .maybeSingle()
+  const details = rawDetails as PairingNotificationDetails | null
+
+  if (detailsError || !details) {
+    console.error("Failed to load pairing notification details:", detailsError)
+  } else {
+    after(async () => {
+      await Promise.all([
+        sendEmail({
+          to: details.tutor_email,
+          ...pairingEmail({
+            recipientName: details.tutor_name,
+            role: "tutor",
+            partnerName: details.tutee_name,
+            partnerEmail: details.tutee_email,
+            subjectName: details.subject_name,
+            pairingUrl,
+          }),
+        }),
+        sendEmail({
+          to: details.tutee_email,
+          ...pairingEmail({
+            recipientName: details.tutee_name,
+            role: "tutee",
+            partnerName: details.tutor_name,
+            partnerEmail: details.tutor_email,
+            subjectName: details.subject_name,
+            pairingUrl,
+          }),
+        }),
+      ])
+    })
+  }
+
   return { success: true }
 }
 

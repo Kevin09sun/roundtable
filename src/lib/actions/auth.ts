@@ -1,8 +1,11 @@
 "use server"
 
-import { headers } from "next/headers"
+import { after } from "next/server"
 import { redirect } from "next/navigation"
 
+import { sendEmail } from "@/lib/email/send"
+import { welcomeEmail } from "@/lib/email/templates"
+import { getOrigin } from "@/lib/request-origin"
 import { createClient } from "@/lib/supabase/server"
 import {
   forgotPasswordSchema,
@@ -21,18 +24,6 @@ import {
 export type ActionResult =
   | { error: string }
   | { success: true; needsEmailConfirmation?: boolean }
-
-/**
- * The site origin, derived from the incoming request headers rather than a
- * hardcoded env var, so email redirect links are correct in every
- * environment (localhost, preview, production) without extra config.
- */
-async function getOrigin() {
-  const requestHeaders = await headers()
-  const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host")
-  const protocol = requestHeaders.get("x-forwarded-proto") ?? "http"
-  return `${protocol}://${host}`
-}
 
 export async function signUp(input: SignupInput): Promise<ActionResult> {
   const parsed = signupSchema.safeParse(input)
@@ -60,7 +51,27 @@ export async function signUp(input: SignupInput): Promise<ActionResult> {
     return { error: error.message }
   }
 
-  if (!data.session) {
+  const needsEmailConfirmation = !data.session
+
+  // Supabase's signature for "this email is already registered": it
+  // returns a fake user object (no error) but with an empty identities
+  // array instead of failing outright, so as not to let signup leak
+  // which emails already have accounts. Sending a welcome email here
+  // would be a lie -- there is no new account -- so skip it.
+  const isNewAccount = data.user?.identities?.length !== 0
+  if (isNewAccount) {
+    // Fire-and-forget: never let the welcome email slow down (or fail) the
+    // signup response. `after()` schedules it once the response has been
+    // sent.
+    after(async () => {
+      await sendEmail({
+        to: email,
+        ...welcomeEmail({ fullName, appUrl: origin, needsEmailConfirmation }),
+      })
+    })
+  }
+
+  if (needsEmailConfirmation) {
     // Email confirmation is required before Supabase issues a session —
     // there is nothing to redirect into yet.
     return { success: true, needsEmailConfirmation: true }
