@@ -4,13 +4,29 @@ import { z } from "zod"
 // the server actions that back them. The server actions re-validate with
 // these same schemas — never trust client-side validation alone.
 
+export const CRESCENT_EMAIL_DOMAIN = "crescentschool.org"
+
+// Pure, framework-free helper so it's trivial to unit test on its own and
+// reusable anywhere else email domain needs checking. Case-insensitive,
+// tolerant of surrounding whitespace, but strict about the suffix: it must
+// end in exactly "@crescentschool.org", not a lookalike domain (e.g.
+// "@evilcrescentschool.org") or a subdomain-suffix trick
+// (e.g. "@crescentschool.org.evil.com").
+export function isCrescentEmail(email: string): boolean {
+  return email.trim().toLowerCase().endsWith(`@${CRESCENT_EMAIL_DOMAIN}`)
+}
+
 export const signupSchema = z.object({
   fullName: z
     .string()
     .trim()
     .min(1, "Full name is required.")
     .max(200, "Full name is too long."),
-  email: z.email("Enter a valid email address."),
+  email: z
+    .string()
+    .trim()
+    .email("Enter a valid email address.")
+    .refine(isCrescentEmail, "Use your @crescentschool.org school email."),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters."),

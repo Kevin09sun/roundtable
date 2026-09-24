@@ -22,6 +22,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -115,8 +116,16 @@ export default function SignupPage() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" autoComplete="email" {...field} />
+                      <Input
+                        type="email"
+                        autoComplete="email"
+                        placeholder="you@crescentschool.org"
+                        {...field}
+                      />
                     </FormControl>
+                    <FormDescription>
+                      Use your @crescentschool.org email.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
